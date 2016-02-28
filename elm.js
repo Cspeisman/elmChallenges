@@ -10708,6 +10708,7 @@ Elm.Main.make = function (_elm) {
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
@@ -10717,20 +10718,40 @@ Elm.Main.make = function (_elm) {
    var view = F2(function (address,model) {    return $Html.fromElement(A3($Graphics$Collage.collage,500,500,model.circles));});
    var Draw = {ctor: "Draw"};
    var NoOp = {ctor: "NoOp"};
-   var circle = A2($Graphics$Collage.filled,$Color.darkBlue,$Graphics$Collage.circle(20.0));
+   var init = {circles: _U.list([])};
+   var initalSeed = $Random.initialSeed(31415);
+   var randomPair = A2($Random.generate,A2($Random.pair,A2($Random.$float,0,100),A2($Random.$float,0,100)),initalSeed);
+   var circle = function () {
+      var _p0 = randomPair;
+      var dem = _p0._0;
+      var seed = _p0._1;
+      return A2($Graphics$Collage.move,dem,A2($Graphics$Collage.filled,$Color.darkBlue,$Graphics$Collage.circle(20.0)));
+   }();
    var update = F2(function (action,model) {
-      var _p0 = action;
-      if (_p0.ctor === "Draw") {
-            return {ctor: "_Tuple2",_0: _U.update(model,{circles: A2($Basics._op["++"],model.circles,_U.list([circle]))}),_1: $Effects.none};
+      var _p1 = action;
+      if (_p1.ctor === "Draw") {
+            return A2($Debug.log,
+            "foo",
+            {ctor: "_Tuple2",_0: _U.update(model,{circles: A2($Basics._op["++"],model.circles,_U.list([circle]))}),_1: $Effects.none});
          } else {
             return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          }
    });
-   var init = {circles: _U.list([])};
    var app = $StartApp.start({init: {ctor: "_Tuple2",_0: init,_1: $Effects.none}
                              ,view: view
                              ,update: update
-                             ,inputs: _U.list([A2($Signal.map,function (_p1) {    return Draw;},timer)])});
+                             ,inputs: _U.list([A2($Signal.map,function (_p2) {    return Draw;},timer)])});
    var main = app.html;
-   return _elm.Main.values = {_op: _op,init: init,circle: circle,NoOp: NoOp,Draw: Draw,update: update,view: view,timer: timer,app: app,main: main};
+   return _elm.Main.values = {_op: _op
+                             ,initalSeed: initalSeed
+                             ,randomPair: randomPair
+                             ,init: init
+                             ,circle: circle
+                             ,NoOp: NoOp
+                             ,Draw: Draw
+                             ,update: update
+                             ,view: view
+                             ,timer: timer
+                             ,app: app
+                             ,main: main};
 };
