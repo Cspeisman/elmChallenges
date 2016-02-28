@@ -9,40 +9,48 @@ import Effects
 import Random
 
 
-
-
 initalSeed = Random.initialSeed 31415
 
 
-randomPair someSeed =
-  Random.generate (Random.pair (Random.float 0 250) (Random.float 0 250)) someSeed
+randomPair model =
+  let
+    (w, h) = model.windowDim
+    (x, y) = (toFloat w/2, toFloat h/2 )
+  in
+    Random.generate (Random.pair (Random.float -x x) (Random.float -y y)) model.seed
 
 
 init =
-  {circles = [], seed = initalSeed, coordinates = (0,0)}
+  {circles = [], seed = initalSeed, coordinates = (0,0), windowDim = (0,0)}
 
 
-circle (x,y) =
+circle (x, y) =
     Graphics.Collage.move (x, y) (Graphics.Collage.filled Color.darkBlue (Graphics.Collage.circle 20.0))
 
 
-type Action = NoOp | Draw
+type Action dimension = NoOp | Draw dimension
 
 
 update action model =
   case action of
-    Draw ->
+    Draw dimension ->
       let
-        (newCoords, newSeed) = randomPair model.seed
+        (newCoords, newSeed) = randomPair model
       in
-        ({ model | circles = model.circles ++ [circle newCoords], seed = newSeed}, Effects.none)
+        ({ model | circles = model.circles ++ [circle newCoords]
+        , seed = newSeed
+        , windowDim = dimension}
+        , Effects.none)
 
     NoOp ->
       (model, Effects.none)
 
 
 view address model =
-  Html.fromElement (Graphics.Collage.collage 500 500 model.circles)
+  let
+    (w,h) = model.windowDim
+  in
+    Html.fromElement (Graphics.Collage.collage w h model.circles)
 
 
 timer =
@@ -54,7 +62,7 @@ app =
       init = (init, Effects.none)
     , view = view
     , update = update
-    , inputs = [Signal.map (\_ -> Draw) timer]
+    , inputs = [Signal.map2 (\_ d -> Draw d) timer Window.dimensions]
   }
 
 

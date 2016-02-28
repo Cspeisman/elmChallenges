@@ -10712,36 +10712,52 @@ Elm.Main.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
-   $Time = Elm.Time.make(_elm);
+   $Time = Elm.Time.make(_elm),
+   $Window = Elm.Window.make(_elm);
    var _op = {};
    var timer = $Time.every($Time.second);
-   var view = F2(function (address,model) {    return $Html.fromElement(A3($Graphics$Collage.collage,500,500,model.circles));});
-   var Draw = {ctor: "Draw"};
+   var view = F2(function (address,model) {
+      var _p0 = model.windowDim;
+      var w = _p0._0;
+      var h = _p0._1;
+      return $Html.fromElement(A3($Graphics$Collage.collage,w,h,model.circles));
+   });
+   var Draw = function (a) {    return {ctor: "Draw",_0: a};};
    var NoOp = {ctor: "NoOp"};
-   var circle = function (_p0) {
-      var _p1 = _p0;
-      return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: _p1._0,_1: _p1._1},A2($Graphics$Collage.filled,$Color.darkBlue,$Graphics$Collage.circle(20.0)));
+   var circle = function (_p1) {
+      var _p2 = _p1;
+      return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: _p2._0,_1: _p2._1},A2($Graphics$Collage.filled,$Color.darkBlue,$Graphics$Collage.circle(20.0)));
    };
-   var randomPair = function (someSeed) {    return A2($Random.generate,A2($Random.pair,A2($Random.$float,0,250),A2($Random.$float,0,250)),someSeed);};
+   var randomPair = function (model) {
+      var _p3 = model.windowDim;
+      var w = _p3._0;
+      var h = _p3._1;
+      var _p4 = {ctor: "_Tuple2",_0: $Basics.toFloat(w) / 2,_1: $Basics.toFloat(h) / 2};
+      var x = _p4._0;
+      var y = _p4._1;
+      return A2($Random.generate,A2($Random.pair,A2($Random.$float,0 - x,x),A2($Random.$float,0 - y,y)),model.seed);
+   };
    var update = F2(function (action,model) {
-      var _p2 = action;
-      if (_p2.ctor === "Draw") {
-            var _p3 = randomPair(model.seed);
-            var newCoords = _p3._0;
-            var newSeed = _p3._1;
+      var _p5 = action;
+      if (_p5.ctor === "Draw") {
+            var _p6 = randomPair(model);
+            var newCoords = _p6._0;
+            var newSeed = _p6._1;
             return A2($Debug.log,
             $Basics.toString(newCoords),
-            {ctor: "_Tuple2",_0: _U.update(model,{circles: A2($Basics._op["++"],model.circles,_U.list([circle(newCoords)])),seed: newSeed}),_1: $Effects.none});
+            {ctor: "_Tuple2"
+            ,_0: _U.update(model,{circles: A2($Basics._op["++"],model.circles,_U.list([circle(newCoords)])),seed: newSeed,windowDim: _p5._0})
+            ,_1: $Effects.none});
          } else {
             return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          }
    });
    var initalSeed = $Random.initialSeed(31415);
-   var init = {circles: _U.list([]),seed: initalSeed,coordinates: {ctor: "_Tuple2",_0: 0,_1: 0}};
+   var init = {circles: _U.list([]),seed: initalSeed,coordinates: {ctor: "_Tuple2",_0: 0,_1: 0},windowDim: {ctor: "_Tuple2",_0: 0,_1: 0}};
    var app = $StartApp.start({init: {ctor: "_Tuple2",_0: init,_1: $Effects.none}
                              ,view: view
                              ,update: update
-                             ,inputs: _U.list([A2($Signal.map,function (_p4) {    return Draw;},timer)])});
+                             ,inputs: _U.list([A3($Signal.map2,F2(function (_p7,d) {    return Draw(d);}),timer,$Window.dimensions)])});
    var main = app.html;
    return _elm.Main.values = {_op: _op
                              ,initalSeed: initalSeed
