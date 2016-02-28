@@ -10718,29 +10718,30 @@ Elm.Main.make = function (_elm) {
    var view = F2(function (address,model) {    return $Html.fromElement(A3($Graphics$Collage.collage,500,500,model.circles));});
    var Draw = {ctor: "Draw"};
    var NoOp = {ctor: "NoOp"};
-   var init = {circles: _U.list([])};
-   var initalSeed = $Random.initialSeed(31415);
-   var randomPair = A2($Random.generate,A2($Random.pair,A2($Random.$float,0,100),A2($Random.$float,0,100)),initalSeed);
-   var circle = function () {
-      var _p0 = randomPair;
-      var dem = _p0._0;
-      var seed = _p0._1;
-      return A2($Graphics$Collage.move,dem,A2($Graphics$Collage.filled,$Color.darkBlue,$Graphics$Collage.circle(20.0)));
-   }();
+   var circle = function (_p0) {
+      var _p1 = _p0;
+      return A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: _p1._0,_1: _p1._1},A2($Graphics$Collage.filled,$Color.darkBlue,$Graphics$Collage.circle(20.0)));
+   };
+   var randomPair = function (someSeed) {    return A2($Random.generate,A2($Random.pair,A2($Random.$float,0,250),A2($Random.$float,0,250)),someSeed);};
    var update = F2(function (action,model) {
-      var _p1 = action;
-      if (_p1.ctor === "Draw") {
+      var _p2 = action;
+      if (_p2.ctor === "Draw") {
+            var _p3 = randomPair(model.seed);
+            var newCoords = _p3._0;
+            var newSeed = _p3._1;
             return A2($Debug.log,
-            "foo",
-            {ctor: "_Tuple2",_0: _U.update(model,{circles: A2($Basics._op["++"],model.circles,_U.list([circle]))}),_1: $Effects.none});
+            $Basics.toString(newCoords),
+            {ctor: "_Tuple2",_0: _U.update(model,{circles: A2($Basics._op["++"],model.circles,_U.list([circle(newCoords)])),seed: newSeed}),_1: $Effects.none});
          } else {
             return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          }
    });
+   var initalSeed = $Random.initialSeed(31415);
+   var init = {circles: _U.list([]),seed: initalSeed,coordinates: {ctor: "_Tuple2",_0: 0,_1: 0}};
    var app = $StartApp.start({init: {ctor: "_Tuple2",_0: init,_1: $Effects.none}
                              ,view: view
                              ,update: update
-                             ,inputs: _U.list([A2($Signal.map,function (_p2) {    return Draw;},timer)])});
+                             ,inputs: _U.list([A2($Signal.map,function (_p4) {    return Draw;},timer)])});
    var main = app.html;
    return _elm.Main.values = {_op: _op
                              ,initalSeed: initalSeed
