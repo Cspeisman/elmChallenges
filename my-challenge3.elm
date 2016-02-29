@@ -7,9 +7,15 @@ import StartApp
 import Html
 import Effects
 import Random
+import Keyboard
 
-
-type alias Model = {circles : List Graphics.Collage.Form, seed : Random.Seed, coordinates : (Int, Int), windowDim : (Int, Int)}
+type alias Model = {
+  circles : List Graphics.Collage.Form
+  , seed : Random.Seed
+  , coordinates : (Int, Int)
+  , windowDim : (Int, Int)
+  , isRunning : Bool
+}
 
 
 initalSeed : Random.Seed
@@ -26,7 +32,11 @@ randomPair model =
 
 init : Model
 init =
-  {circles = [], seed = initalSeed, coordinates = (0,0), windowDim = (0,0)}
+  { circles = []
+  , seed = initalSeed
+  , coordinates = (0,0)
+  , windowDim = (0,0)
+  , isRunning = True}
 
 
 circle : (Float, Float) -> Graphics.Collage.Form
@@ -34,26 +44,39 @@ circle (x, y) =
     Graphics.Collage.move (x, y) (Graphics.Collage.filled Color.darkBlue (Graphics.Collage.circle 20.0))
 
 
-type Action dimension = NoOp | Draw dimension
+type Action dimension key = NoOp
+  | Draw dimension
+  | Reset key
 
 
-update : Action ( Int, Int ) -> Model -> (Model, Effects.Effects (Action ( Int, Int )))
 update action model =
   case action of
     Draw dimension ->
       let
         (newCoords, newSeed) = randomPair model
       in
-        ({ model | circles = model.circles ++ [circle newCoords]
-        , seed = newSeed
-        , windowDim = dimension}
-        , Effects.none)
+        if model.isRunning then
+          ({ model | circles = model.circles ++ [circle newCoords]
+          , seed = newSeed
+          , windowDim = dimension}
+          , Effects.none)
+        else
+          (model, Effects.none)
 
+    Reset key ->
+      if key == 112 && model.isRunning then
+        ({model | isRunning = False}, Effects.none)
+      else if key == 112 && not model.isRunning then
+        ({model | isRunning = True}, Effects.none)
+      else if key == 114 then
+        ({model | circles = []}, Effects.none)
+      else
+        (model, Effects.none)
     NoOp ->
       (model, Effects.none)
 
 
-view : Signal.Address (Action ( Int, Int )) -> Model -> Html.Html
+
 view address model =
   let
     (w,h) = model.windowDim
@@ -72,7 +95,7 @@ app =
       init = (init, Effects.none)
     , view = view
     , update = update
-    , inputs = [Signal.map2 (\_ d -> Draw d) timer Window.dimensions]
+    , inputs = [Signal.map2 (\_ d -> Draw d) timer Window.dimensions, Signal.map (\key -> Reset key) Keyboard.presses]
   }
 
 
